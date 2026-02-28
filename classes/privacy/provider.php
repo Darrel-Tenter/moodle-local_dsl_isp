@@ -211,9 +211,13 @@ class provider implements
             // Export DSP assignments where user is the DSP.
             $assignments = $DB->get_records('dsl_isp_dsp', ['userid' => $userid]);
             if (!empty($assignments)) {
+                // Preload all client records to avoid N+1 queries.
+                $clientids = array_unique(array_column($assignments, 'clientid'));
+                $clients = $DB->get_records_list('dsl_isp_client', 'id', $clientids);
+
                 $data = [];
                 foreach ($assignments as $assignment) {
-                    $client = $DB->get_record('dsl_isp_client', ['id' => $assignment->clientid]);
+                    $client = $clients[$assignment->clientid] ?? null;
                     $data[] = [
                         'client' => $client ? ($client->firstname . ' ' . $client->lastname) : 'Unknown',
                         'timeassigned' => transform::datetime($assignment->timeassigned),
@@ -230,9 +234,13 @@ class provider implements
             // Export completion history where user is the DSP.
             $completions = $DB->get_records('dsl_isp_completion_log', ['userid' => $userid]);
             if (!empty($completions)) {
+                // Preload all client records to avoid N+1 queries.
+                $clientids = array_unique(array_column($completions, 'clientid'));
+                $clients = $DB->get_records_list('dsl_isp_client', 'id', $clientids);
+
                 $data = [];
                 foreach ($completions as $completion) {
-                    $client = $DB->get_record('dsl_isp_client', ['id' => $completion->clientid]);
+                    $client = $clients[$completion->clientid] ?? null;
                     $data[] = [
                         'client' => $client ? ($client->firstname . ' ' . $client->lastname) : 'Unknown',
                         'planyearstart' => transform::datetime($completion->planyearstart),
@@ -327,25 +335,13 @@ class provider implements
         list($insql, $params) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED);
 
         // Anonymize assignedby/unassignedby references.
-        $DB->execute(
-            "UPDATE {dsl_isp_dsp} SET assignedby = 0 WHERE assignedby $insql",
-            $params
-        );
-        $DB->execute(
-            "UPDATE {dsl_isp_dsp} SET unassignedby = 0 WHERE unassignedby $insql",
-            $params
-        );
+        $DB->set_field_select('dsl_isp_dsp', 'assignedby', 0, "assignedby $insql", $params);
+        $DB->set_field_select('dsl_isp_dsp', 'unassignedby', 0, "unassignedby $insql", $params);
 
         // Anonymize usermodified in client records.
-        $DB->execute(
-            "UPDATE {dsl_isp_client} SET usermodified = 0 WHERE usermodified $insql",
-            $params
-        );
+        $DB->set_field_select('dsl_isp_client', 'usermodified', 0, "usermodified $insql", $params);
 
         // Anonymize enabledby in tenant settings.
-        $DB->execute(
-            "UPDATE {dsl_isp_tenant_settings} SET enabledby = NULL WHERE enabledby $insql",
-            $params
-        );
+        $DB->set_field_select('dsl_isp_tenant_settings', 'enabledby', null, "enabledby $insql", $params);
     }
 }
