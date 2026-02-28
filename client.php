@@ -79,35 +79,35 @@ $PAGE->set_pagelayout('standard');
 // Handle actions.
 switch ($action) {
     case 'add':
-        handle_add_action($mgr, $tenantid, $pageurl, $indexurl);
+        local_dsl_isp_handle_add_action($mgr, $tenantid, $pageurl, $indexurl);
         break;
 
     case 'edit':
         if (!$client) {
             throw new moodle_exception('error_clientnotfound', 'local_dsl_isp');
         }
-        handle_edit_action($mgr, $client, $tenantid, $pageurl, $indexurl);
+        local_dsl_isp_handle_edit_action($mgr, $client, $tenantid, $pageurl, $indexurl);
         break;
 
     case 'documents':
         if (!$client) {
             throw new moodle_exception('error_clientnotfound', 'local_dsl_isp');
         }
-        handle_documents_action($mgr, $client, $tenantid, $pageurl, $indexurl);
+        local_dsl_isp_handle_documents_action($mgr, $client, $tenantid, $pageurl, $indexurl);
         break;
 
     case 'archive':
         if (!$client) {
             throw new moodle_exception('error_clientnotfound', 'local_dsl_isp');
         }
-        handle_archive_action($mgr, $client, $indexurl);
+        local_dsl_isp_handle_archive_action($mgr, $client, $indexurl);
         break;
 
     case 'unarchive':
         if (!$client) {
             throw new moodle_exception('error_clientnotfound', 'local_dsl_isp');
         }
-        handle_unarchive_action($mgr, $client, $indexurl);
+        local_dsl_isp_handle_unarchive_action($mgr, $client, $indexurl);
         break;
 
     case 'view':
@@ -115,7 +115,7 @@ switch ($action) {
         if (!$client) {
             throw new moodle_exception('error_clientnotfound', 'local_dsl_isp');
         }
-        handle_view_action($client, $tenantid, $context);
+        local_dsl_isp_handle_view_action($client, $tenantid, $context);
         break;
 }
 
@@ -127,7 +127,7 @@ switch ($action) {
  * @param moodle_url $pageurl The current page URL.
  * @param moodle_url $indexurl The index page URL.
  */
-function handle_add_action(manager $mgr, int $tenantid, moodle_url $pageurl, moodle_url $indexurl): void {
+function local_dsl_isp_handle_add_action(manager $mgr, int $tenantid, moodle_url $pageurl, moodle_url $indexurl): void {
     global $PAGE, $OUTPUT;
 
     $PAGE->set_title(get_string('addnewclient', 'local_dsl_isp'));
@@ -175,7 +175,7 @@ function handle_add_action(manager $mgr, int $tenantid, moodle_url $pageurl, moo
  * @param moodle_url $pageurl The current page URL.
  * @param moodle_url $indexurl The index page URL.
  */
-function handle_edit_action(manager $mgr, stdClass $client, int $tenantid, moodle_url $pageurl, moodle_url $indexurl): void {
+function local_dsl_isp_handle_edit_action(manager $mgr, stdClass $client, int $tenantid, moodle_url $pageurl, moodle_url $indexurl): void {
     global $PAGE, $OUTPUT;
 
     $clientname = $client->firstname . ' ' . $client->lastname;
@@ -227,7 +227,7 @@ function handle_edit_action(manager $mgr, stdClass $client, int $tenantid, moodl
  * @param moodle_url $pageurl The current page URL.
  * @param moodle_url $indexurl The index page URL.
  */
-function handle_documents_action(manager $mgr, stdClass $client, int $tenantid, moodle_url $pageurl, moodle_url $indexurl): void {
+function local_dsl_isp_handle_documents_action(manager $mgr, stdClass $client, int $tenantid, moodle_url $pageurl, moodle_url $indexurl): void {
     global $PAGE, $OUTPUT;
 
     $clientname = $client->firstname . ' ' . $client->lastname;
@@ -301,7 +301,7 @@ function handle_documents_action(manager $mgr, stdClass $client, int $tenantid, 
  * @param stdClass $client The client record.
  * @param moodle_url $indexurl The index page URL.
  */
-function handle_archive_action(manager $mgr, stdClass $client, moodle_url $indexurl): void {
+function local_dsl_isp_handle_archive_action(manager $mgr, stdClass $client, moodle_url $indexurl): void {
     require_sesskey();
 
     $clientname = $client->firstname . ' ' . $client->lastname;
@@ -323,7 +323,7 @@ function handle_archive_action(manager $mgr, stdClass $client, moodle_url $index
  * @param stdClass $client The client record.
  * @param moodle_url $indexurl The index page URL.
  */
-function handle_unarchive_action(manager $mgr, stdClass $client, moodle_url $indexurl): void {
+function local_dsl_isp_handle_unarchive_action(manager $mgr, stdClass $client, moodle_url $indexurl): void {
     require_sesskey();
 
     $clientname = $client->firstname . ' ' . $client->lastname;
@@ -345,7 +345,7 @@ function handle_unarchive_action(manager $mgr, stdClass $client, moodle_url $ind
  * @param int $tenantid The tenant ID.
  * @param context $context The context.
  */
-function handle_view_action(stdClass $client, int $tenantid, context $context): void {
+function local_dsl_isp_handle_view_action(stdClass $client, int $tenantid, context $context): void {
     global $PAGE, $OUTPUT;
 
     $clientname = $client->firstname . ' ' . $client->lastname;

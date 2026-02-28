@@ -68,16 +68,16 @@ $PAGE->set_pagelayout('standard');
 // Handle actions.
 switch ($action) {
     case 'add':
-        handle_add_action($client, $tenantid, $pageurl, $clienturl);
+        local_dsl_isp_handle_dsp_add_action($client, $tenantid, $pageurl, $clienturl);
         break;
 
     case 'remove':
-        handle_remove_action($client, $userid, $clienturl);
+        local_dsl_isp_handle_dsp_remove_action($client, $userid, $clienturl);
         break;
 
     case 'reset':
         require_capability('local/dsl_isp:resetcompletion', $context);
-        handle_reset_action($client, $userid, $tenantid, $clienturl);
+        local_dsl_isp_handle_dsp_reset_action($client, $userid, $tenantid, $clienturl);
         break;
 
     case 'view':
@@ -95,7 +95,7 @@ switch ($action) {
  * @param moodle_url $pageurl The current page URL.
  * @param moodle_url $clienturl The client detail page URL.
  */
-function handle_add_action(stdClass $client, int $tenantid, moodle_url $pageurl, moodle_url $clienturl): void {
+function local_dsl_isp_handle_dsp_add_action(stdClass $client, int $tenantid, moodle_url $pageurl, moodle_url $clienturl): void {
     global $PAGE, $OUTPUT, $USER;
 
     $clientname = $client->firstname . ' ' . $client->lastname;
@@ -154,7 +154,7 @@ function handle_add_action(stdClass $client, int $tenantid, moodle_url $pageurl,
  * @param int $userid The DSP user ID.
  * @param moodle_url $clienturl The client detail page URL.
  */
-function handle_remove_action(stdClass $client, int $userid, moodle_url $clienturl): void {
+function local_dsl_isp_handle_dsp_remove_action(stdClass $client, int $userid, moodle_url $clienturl): void {
     global $USER, $DB;
 
     require_sesskey();
@@ -192,7 +192,7 @@ function handle_remove_action(stdClass $client, int $userid, moodle_url $clientu
  * @param int $tenantid The tenant ID.
  * @param moodle_url $clienturl The client detail page URL.
  */
-function handle_reset_action(stdClass $client, int $userid, int $tenantid, moodle_url $clienturl): void {
+function local_dsl_isp_handle_dsp_reset_action(stdClass $client, int $userid, int $tenantid, moodle_url $clienturl): void {
     global $USER, $DB;
 
     require_sesskey();

@@ -237,11 +237,11 @@ function local_dsl_isp_pre_user_delete(stdClass $user): void {
 
     // Mark all active DSP assignments for this user as unassigned.
     $now = time();
-    $DB->execute(
-        "UPDATE {dsl_isp_dsp}
-            SET timeunassigned = :now
-          WHERE userid = :userid
-            AND timeunassigned IS NULL",
-        ['now' => $now, 'userid' => $user->id]
+    $DB->set_field_select(
+        'dsl_isp_dsp',
+        'timeunassigned',
+        $now,
+        'userid = :userid AND timeunassigned IS NULL',
+        ['userid' => $user->id]
     );
 }
