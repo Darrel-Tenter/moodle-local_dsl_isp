@@ -1,0 +1,334 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_dsl_isp/client_detail
+
+    Client detail page template.
+
+    Context variables required for this template:
+    * fullname - string - Client full name
+    * servicetypelabel - string - Service type label
+    * anniversarydate - string - Formatted anniversary date
+    * planyearstart - string - Plan year start date
+    * planyearend - string - Plan year end date
+    * isactive - boolean - Whether client is active
+    * isarchived - boolean - Whether client is archived
+    * dspcount - int - Total DSP count
+    * completedcount - int - Completed DSP count
+    * progresspercent - int - Progress percentage
+    * hasdocuments - boolean - Whether there are documents
+    * documents - array - Document data
+    * hasdsps - boolean - Whether there are DSPs
+    * dsps - array - DSP data
+    * hashistory - boolean - Whether there is history
+    * history - array - History records
+    * canmanageclients - boolean
+    * canmanagedsps - boolean
+    * canresetcompletion - boolean
+    * canviewhistory - boolean
+    * backurl, editurl, documentsurl, archiveurl, unarchiveurl, adddspurl, courseurl - URLs
+    * sesskey - string - Session key
+
+    Example context (json):
+    {
+        "fullname": "John Doe",
+        "servicetypelabel": "Residential",
+        "isactive": true,
+        "canmanageclients": true
+    }
+}}
+
+<div class="local-dsl-isp-client-detail">
+    {{! Back link }}
+    <div class="mb-3">
+        <a href="{{backurl}}" class="btn btn-link pl-0">
+            {{#pix}}t/left, core{{/pix}}
+            {{#str}}backtoclientlist, local_dsl_isp{{/str}}
+        </a>
+    </div>
+
+    {{! Client summary card }}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{fullname}}</h4>
+            <div>
+                {{#isactive}}
+                <span class="badge badge-success">{{#str}}active, local_dsl_isp{{/str}}</span>
+                {{/isactive}}
+                {{#isarchived}}
+                <span class="badge badge-secondary">{{#str}}archived, local_dsl_isp{{/str}}</span>
+                {{/isarchived}}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">{{#str}}servicetype, local_dsl_isp{{/str}}</dt>
+                        <dd class="col-sm-7">{{servicetypelabel}}</dd>
+                        
+                        <dt class="col-sm-5">{{#str}}anniversarydatefield, local_dsl_isp{{/str}}</dt>
+                        <dd class="col-sm-7">{{anniversarydate}}</dd>
+                        
+                        <dt class="col-sm-5">{{#str}}currentplanyear, local_dsl_isp{{/str}}</dt>
+                        <dd class="col-sm-7">{{planyearstart}} – {{planyearend}}</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    {{! Progress summary }}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{{completedcount}} {{#str}}of{{/str}} {{dspcount}} {{#str}}statuscomplete, local_dsl_isp{{/str}}</span>
+                            <span>{{progresspercent}}%</span>
+                        </div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" 
+                                 role="progressbar" 
+                                 style="width: {{progresspercent}}%;" 
+                                 aria-valuenow="{{progresspercent}}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{#canmanageclients}}
+        <div class="card-footer">
+            <a href="{{editurl}}" class="btn btn-sm btn-outline-primary">
+                {{#pix}}t/edit, core{{/pix}}
+                {{#str}}editclientinfo, local_dsl_isp{{/str}}
+            </a>
+            <a href="{{documentsurl}}" class="btn btn-sm btn-outline-primary">
+                {{#pix}}t/upload, core{{/pix}}
+                {{#str}}updatedocuments, local_dsl_isp{{/str}}
+            </a>
+            <a href="{{courseurl}}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                {{#pix}}t/viewdetails, core{{/pix}}
+                {{#str}}viewcourse, local_dsl_isp{{/str}}
+            </a>
+            {{#isactive}}
+            <a href="{{archiveurl}}" class="btn btn-sm btn-outline-danger float-right" 
+               data-action="archive" data-clientid="{{id}}">
+                {{#pix}}t/block, core{{/pix}}
+                {{#str}}archiveclient, local_dsl_isp{{/str}}
+            </a>
+            {{/isactive}}
+            {{#isarchived}}
+            <a href="{{unarchiveurl}}" class="btn btn-sm btn-outline-success float-right">
+                {{#pix}}t/show, core{{/pix}}
+                {{#str}}unarchiveclient, local_dsl_isp{{/str}}
+            </a>
+            {{/isarchived}}
+        </div>
+        {{/canmanageclients}}
+    </div>
+
+    {{! Documents section }}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{{#str}}documentsection, local_dsl_isp{{/str}}</h5>
+        </div>
+        <div class="card-body p-0">
+            {{#hasdocuments}}
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{#str}}documentslot, local_dsl_isp{{/str}}</th>
+                            <th>{{#str}}filename, local_dsl_isp{{/str}}</th>
+                            <th>{{#str}}lastupdated, local_dsl_isp{{/str}}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#documents}}
+                        <tr>
+                            <td>
+                                {{name}}
+                                {{#required}}
+                                <span class="badge badge-info">{{#str}}docslot_required, local_dsl_isp{{/str}}</span>
+                                {{/required}}
+                            </td>
+                            <td>
+                                {{#hasfile}}
+                                {{filename}}
+                                <small class="text-muted">({{filesize}})</small>
+                                {{/hasfile}}
+                                {{^hasfile}}
+                                <span class="text-muted">—</span>
+                                {{/hasfile}}
+                            </td>
+                            <td>
+                                {{#hasfile}}
+                                {{lastupdated}}
+                                {{/hasfile}}
+                                {{^hasfile}}
+                                <span class="text-muted">—</span>
+                                {{/hasfile}}
+                            </td>
+                        </tr>
+                        {{/documents}}
+                    </tbody>
+                </table>
+            </div>
+            {{/hasdocuments}}
+            {{^hasdocuments}}
+            <div class="p-3 text-muted">
+                {{#str}}nodocuments, local_dsl_isp{{/str}}
+            </div>
+            {{/hasdocuments}}
+        </div>
+    </div>
+
+    {{! DSP Assignments section }}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{#str}}dspassignments, local_dsl_isp{{/str}}</h5>
+            {{#canmanagedsps}}
+            <a href="{{adddspurl}}" class="btn btn-sm btn-primary">
+                {{#pix}}t/add, core{{/pix}}
+                {{#str}}adddsp, local_dsl_isp{{/str}}
+            </a>
+            {{/canmanagedsps}}
+        </div>
+        <div class="card-body p-0">
+            {{#hasdsps}}
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{#str}}dspname, local_dsl_isp{{/str}}</th>
+                            <th>{{#str}}dateassigned, local_dsl_isp{{/str}}</th>
+                            <th>{{#str}}completionstatus, local_dsl_isp{{/str}}</th>
+                            {{#canmanagedsps}}
+                            <th>{{#str}}actions, local_dsl_isp{{/str}}</th>
+                            {{/canmanagedsps}}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#dsps}}
+                        <tr data-userid="{{userid}}">
+                            <td>
+                                {{fullname}}
+                                <br><small class="text-muted">{{email}}</small>
+                            </td>
+                            <td>{{dateassigned}}</td>
+                            <td>
+                                {{> local_dsl_isp/completion_status }}
+                            </td>
+                            {{#canmanagedsps}}
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    {{#canresetcompletion}}
+                                    <a href="{{reseturl}}" 
+                                       class="btn btn-outline-warning"
+                                       data-action="reset"
+                                       data-userid="{{userid}}"
+                                       data-username="{{fullname}}"
+                                       title="{{#str}}resetcompletion, local_dsl_isp{{/str}}">
+                                        {{#pix}}t/reload, core{{/pix}}
+                                    </a>
+                                    {{/canresetcompletion}}
+                                    <a href="{{removeurl}}" 
+                                       class="btn btn-outline-danger"
+                                       data-action="remove"
+                                       data-userid="{{userid}}"
+                                       data-username="{{fullname}}"
+                                       title="{{#str}}removedsp, local_dsl_isp{{/str}}">
+                                        {{#pix}}t/delete, core{{/pix}}
+                                    </a>
+                                </div>
+                            </td>
+                            {{/canmanagedsps}}
+                        </tr>
+                        {{/dsps}}
+                    </tbody>
+                </table>
+            </div>
+            {{/hasdsps}}
+            {{^hasdsps}}
+            <div class="p-3 text-muted">
+                {{#str}}nodspsassigned, local_dsl_isp{{/str}}
+            </div>
+            {{/hasdsps}}
+        </div>
+    </div>
+
+    {{! Completion History section }}
+    {{#canviewhistory}}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <a data-toggle="collapse" href="#historyCollapse" role="button" aria-expanded="false">
+                    {{#str}}completionhistory, local_dsl_isp{{/str}}
+                    {{#pix}}t/expanded, core{{/pix}}
+                </a>
+            </h5>
+        </div>
+        <div class="collapse" id="historyCollapse">
+            <div class="card-body p-0">
+                {{#hashistory}}
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{#str}}dspname, local_dsl_isp{{/str}}</th>
+                                <th>{{#str}}planyearcolumn, local_dsl_isp{{/str}}</th>
+                                <th>{{#str}}completeddatecolumn, local_dsl_isp{{/str}}</th>
+                                <th>{{#str}}archivedcolumn, local_dsl_isp{{/str}}</th>
+                                <th>{{#str}}notescolumn, local_dsl_isp{{/str}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{#history}}
+                            <tr class="{{#isgap}}table-danger{{/isgap}}">
+                                <td>{{dspname}}</td>
+                                <td>{{planyear}}</td>
+                                <td>
+                                    {{#iscompleted}}
+                                    <span class="text-success">{{completedtext}}</span>
+                                    {{/iscompleted}}
+                                    {{#isgap}}
+                                    <span class="text-danger font-weight-bold">{{completedtext}}</span>
+                                    {{/isgap}}
+                                </td>
+                                <td>{{archiveddate}}</td>
+                                <td>
+                                    {{#hasmanualreset}}
+                                    <span class="badge badge-warning">{{#str}}manualreset, local_dsl_isp{{/str}}</span>
+                                    {{/hasmanualreset}}
+                                    {{^hasmanualreset}}
+                                    {{notes}}
+                                    {{/hasmanualreset}}
+                                </td>
+                            </tr>
+                            {{/history}}
+                        </tbody>
+                    </table>
+                </div>
+                {{/hashistory}}
+                {{^hashistory}}
+                <div class="p-3 text-muted">
+                    {{#str}}nocompletionhistory, local_dsl_isp{{/str}}
+                </div>
+                {{/hashistory}}
+            </div>
+        </div>
+    </div>
+    {{/canviewhistory}}
+</div>

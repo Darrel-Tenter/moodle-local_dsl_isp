@@ -1,0 +1,132 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template local_dsl_isp/client_list
+
+    Client list page template.
+
+    Context variables required for this template:
+    * hasclients - boolean - Whether there are clients to display
+    * clients - array - List of client data objects
+    * total - int - Total number of clients
+    * clientcounttext - string - Formatted client count text
+    * canmanage - boolean - Whether user can manage clients
+    * addclienturl - string - URL to add new client
+    * search - string - Current search string
+    * servicetypeoptions - array - Service type filter options
+    * statusoptions - array - Completion status filter options
+    * formaction - string - Filter form action URL
+    * haspagination - boolean - Whether pagination is needed
+    * pagination - string - Rendered pagination HTML
+    * noresultsmessage - string - Message when no results
+
+    Example context (json):
+    {
+        "hasclients": true,
+        "clients": [],
+        "total": 10,
+        "clientcounttext": "10 client(s)",
+        "canmanage": true,
+        "addclienturl": "/local/dsl_isp/client.php?action=add",
+        "search": "",
+        "servicetypeoptions": [],
+        "statusoptions": [],
+        "formaction": "/local/dsl_isp/index.php",
+        "haspagination": false,
+        "pagination": "",
+        "noresultsmessage": ""
+    }
+}}
+
+<div class="local-dsl-isp-client-list">
+    {{! Header with Add button }}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <span class="text-muted">{{clientcounttext}}</span>
+        </div>
+        {{#canmanage}}
+        <div>
+            <a href="{{addclienturl}}" class="btn btn-primary">
+                {{#pix}}t/add, core{{/pix}}
+                {{#str}}addnewclient, local_dsl_isp{{/str}}
+            </a>
+        </div>
+        {{/canmanage}}
+    </div>
+
+    {{! Filter form }}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="{{formaction}}" class="form-inline">
+                <div class="form-group mr-3 mb-2">
+                    <label for="search" class="sr-only">{{#str}}searchclients, local_dsl_isp{{/str}}</label>
+                    <input type="text" 
+                           class="form-control" 
+                           id="search" 
+                           name="search" 
+                           placeholder="{{#str}}searchclients, local_dsl_isp{{/str}}"
+                           value="{{search}}">
+                </div>
+                <div class="form-group mr-3 mb-2">
+                    <label for="servicetype" class="sr-only">{{#str}}filterbyservicetype, local_dsl_isp{{/str}}</label>
+                    <select class="form-control" id="servicetype" name="servicetype">
+                        {{#servicetypeoptions}}
+                        <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                        {{/servicetypeoptions}}
+                    </select>
+                </div>
+                <div class="form-group mr-3 mb-2">
+                    <label for="completionstatus" class="sr-only">{{#str}}filterbycompletionstatus, local_dsl_isp{{/str}}</label>
+                    <select class="form-control" id="completionstatus" name="completionstatus">
+                        {{#statusoptions}}
+                        <option value="{{value}}" {{#selected}}selected{{/selected}}>{{label}}</option>
+                        {{/statusoptions}}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-secondary mb-2">
+                    {{#pix}}t/search, core{{/pix}}
+                    {{#str}}search{{/str}}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {{! Client cards grid }}
+    {{#hasclients}}
+    <div class="row">
+        {{#clients}}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            {{> local_dsl_isp/client_card }}
+        </div>
+        {{/clients}}
+    </div>
+
+    {{! Pagination }}
+    {{#haspagination}}
+    <div class="mt-4">
+        {{{pagination}}}
+    </div>
+    {{/haspagination}}
+    {{/hasclients}}
+
+    {{! No results }}
+    {{^hasclients}}
+    <div class="alert alert-info">
+        {{noresultsmessage}}
+    </div>
+    {{/hasclients}}
+</div>

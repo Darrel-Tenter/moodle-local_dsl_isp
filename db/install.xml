@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/dsl_isp/db" VERSION="2026022700" COMMENT="local_dsl_isp plugin tables"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="dsl_isp_client" COMMENT="One row per IDD client. Stores all information needed to manage the client ISP course lifecycle.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="tenantid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: tool_tenant.id"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: course.id (the ISP course)"/>
+        <FIELD NAME="firstname" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Client first name"/>
+        <FIELD NAME="lastname" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Client last name"/>
+        <FIELD NAME="servicetype" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="e.g. residential, attendant_care, dsa"/>
+        <FIELD NAME="anniversarydate" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp: ISP plan year start"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" SEQUENCE="false" COMMENT="1=active, 0=archived"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: user.id"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_tenantid" TYPE="foreign" FIELDS="tenantid" REFTABLE="tool_tenant" REFFIELDS="id"/>
+        <KEY NAME="fk_courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+        <KEY NAME="fk_usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_tenantid" UNIQUE="false" FIELDS="tenantid"/>
+        <INDEX NAME="ix_courseid" UNIQUE="false" FIELDS="courseid"/>
+        <INDEX NAME="ix_status" UNIQUE="false" FIELDS="status"/>
+        <INDEX NAME="ix_tenantid_status" UNIQUE="false" FIELDS="tenantid, status"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="dsl_isp_dsp" COMMENT="DSP-to-client assignments. A DSP can be assigned to multiple clients; a client can have multiple DSPs. Soft-delete via timeunassigned.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="clientid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: dsl_isp_client.id"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: user.id (the DSP)"/>
+        <FIELD NAME="timeassigned" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp"/>
+        <FIELD NAME="timeunassigned" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="NULL if currently active"/>
+        <FIELD NAME="assignedby" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: user.id (admin who assigned)"/>
+        <FIELD NAME="unassignedby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK: user.id (admin who removed)"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_clientid" TYPE="foreign" FIELDS="clientid" REFTABLE="dsl_isp_client" REFFIELDS="id"/>
+        <KEY NAME="fk_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_assignedby" TYPE="foreign" FIELDS="assignedby" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_unassignedby" TYPE="foreign" FIELDS="unassignedby" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_clientid" UNIQUE="false" FIELDS="clientid"/>
+        <INDEX NAME="ix_userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="ix_clientid_userid_timeunassigned" UNIQUE="false" FIELDS="clientid, userid, timeunassigned"/>
+        <INDEX NAME="ix_userid_timeunassigned" UNIQUE="false" FIELDS="userid, timeunassigned"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="dsl_isp_completion_log" COMMENT="Historical archive of annual ISP completion records. Snapshotted by scheduled task before each annual reset. Provides 7-10 year audit trail.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="clientid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: dsl_isp_client.id"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: user.id (the DSP)"/>
+        <FIELD NAME="planyearstart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp: anniversary date that opened this cycle"/>
+        <FIELD NAME="planyearend" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp: anniversary date that closed this cycle"/>
+        <FIELD NAME="timecompleted" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="NULL if DSP did not complete this cycle"/>
+        <FIELD NAME="timearchived" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="When scheduled task snapshotted this record"/>
+        <FIELD NAME="notes" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Optional notes e.g. manual_reset"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_clientid" TYPE="foreign" FIELDS="clientid" REFTABLE="dsl_isp_client" REFFIELDS="id"/>
+        <KEY NAME="fk_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_clientid" UNIQUE="false" FIELDS="clientid"/>
+        <INDEX NAME="ix_userid" UNIQUE="false" FIELDS="userid"/>
+        <INDEX NAME="ix_planyearstart" UNIQUE="false" FIELDS="planyearstart"/>
+        <INDEX NAME="ix_clientid_planyearstart" UNIQUE="false" FIELDS="clientid, planyearstart"/>
+        <INDEX NAME="ix_userid_planyearstart" UNIQUE="false" FIELDS="userid, planyearstart"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="dsl_isp_tenant_settings" COMMENT="Per-tenant configuration. Controls feature access and stores tenant-level defaults.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="tenantid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="FK: tool_tenant.id (unique)"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="1=ISP Manager enabled for this tenant"/>
+        <FIELD NAME="enabledby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="FK: user.id (DSL admin who enabled)"/>
+        <FIELD NAME="timeenabled" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="When feature was enabled"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Unix timestamp"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_tenantid" TYPE="foreign" FIELDS="tenantid" REFTABLE="tool_tenant" REFFIELDS="id"/>
+        <KEY NAME="fk_enabledby" TYPE="foreign" FIELDS="enabledby" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="ix_tenantid" UNIQUE="true" FIELDS="tenantid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
