@@ -104,7 +104,8 @@ class manager {
             $coursename = $this->build_course_name($data->firstname, $data->lastname, $data->servicetype);
             $courseid = $coursebuilder->create_course_from_template(
                 $coursename,
-                $data->anniversarydate
+                $data->anniversarydate,
+                $this->tenantid
             );
 
             // Replace document placeholders.

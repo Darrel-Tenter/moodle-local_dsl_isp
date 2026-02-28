@@ -131,10 +131,11 @@ class course_builder {
      *
      * @param string $coursename The name for the new course.
      * @param int $startdate The course start date (anniversary date).
+     * @param int $tenantid The tenant ID.
      * @return int The new course ID.
      * @throws moodle_exception On failure.
      */
-    public function create_course_from_template(string $coursename, int $startdate): int {
+    public function create_course_from_template(string $coursename, int $startdate, int $tenantid): int {
         global $DB;
 
         $templateid = $this->get_template_course_id();
@@ -142,12 +143,15 @@ class course_builder {
         // Generate unique shortname.
         $shortname = $this->generate_unique_shortname($coursename);
 
+        // Get or create the ISP category for this tenant.
+        $categoryid = $this->get_or_create_isp_category($tenantid);
+
         // Use core web service to duplicate course.
         $params = [
             'courseid' => $templateid,
             'fullname' => $coursename,
             'shortname' => $shortname,
-            'categoryid' => $this->get_template_category_id($templateid),
+            'categoryid' => $categoryid,
             'visible' => 1,
             'options' => [
                 ['name' => 'users', 'value' => 0],
@@ -513,15 +517,50 @@ class course_builder {
         return $candidate;
     }
 
+    /** @var string The name of the ISP subcategory within tenant categories. */
+    const ISP_CATEGORY_NAME = 'ISP & Supporting Documents';
+
     /**
-     * Get the category ID for the template course.
+     * Get or create the ISP category for a tenant.
      *
-     * @param int $templateid The template course ID.
-     * @return int The category ID.
+     * Looks for a subcategory named "ISP & Supporting Documents" under the tenant's
+     * category. If it doesn't exist, creates it.
+     *
+     * @param int $tenantid The tenant ID.
+     * @return int The category ID for ISP courses.
+     * @throws moodle_exception If tenant category is not configured.
      */
-    protected function get_template_category_id(int $templateid): int {
+    protected function get_or_create_isp_category(int $tenantid): int {
         global $DB;
-        return (int) $DB->get_field('course', 'category', ['id' => $templateid]);
+
+        // Get the tenant's category ID.
+        $tenantcategoryid = $DB->get_field('tool_tenant', 'categoryid', ['id' => $tenantid]);
+
+        if (empty($tenantcategoryid)) {
+            throw new moodle_exception('error_tenantcategorynotconfigured', 'local_dsl_isp');
+        }
+
+        // Look for existing ISP subcategory.
+        $ispcategory = $DB->get_record('course_categories', [
+            'parent' => $tenantcategoryid,
+            'name' => self::ISP_CATEGORY_NAME,
+        ]);
+
+        if ($ispcategory) {
+            return (int) $ispcategory->id;
+        }
+
+        // Create the ISP subcategory.
+        $categorydata = (object) [
+            'name' => self::ISP_CATEGORY_NAME,
+            'parent' => $tenantcategoryid,
+            'description' => get_string('ispcategorydescription', 'local_dsl_isp'),
+            'descriptionformat' => FORMAT_HTML,
+        ];
+
+        $newcategory = \core_course_category::create($categorydata);
+
+        return (int) $newcategory->id;
     }
 
     /**

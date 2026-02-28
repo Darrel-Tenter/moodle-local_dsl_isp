@@ -256,6 +256,8 @@ $string['error_unenrollmentfailed'] = 'Failed to unenroll DSP from the course. P
 $string['error_completionresetfailed'] = 'Failed to reset completion. Please try again.';
 $string['error_documentreplacefailed'] = 'Failed to replace document. Please try again.';
 $string['error_templatecoursenotconfigured'] = 'The template course has not been configured. Please contact your DSL administrator.';
+$string['error_tenantcategorynotconfigured'] = 'The tenant does not have a category configured. Please contact your DSL administrator.';
+$string['ispcategorydescription'] = 'ISP review courses and supporting documents for IDD clients.';
 $string['error_tenantnotfound'] = 'Your organization could not be determined. Please contact support.';
 $string['error_permissiondenied'] = 'You do not have permission to perform this action.';
 
